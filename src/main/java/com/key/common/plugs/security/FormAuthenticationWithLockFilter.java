@@ -71,7 +71,6 @@ public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
             Subject subject = getSubject(request, response);
             subject.login(token);
             
-//    		User user = accountManager.findUserByLoginName(getUsername(request));
     		User user = accountManager.findUserByLoginNameOrEmail(getUsername(request));
 
             return onLoginSuccess(token, subject, request, response);
