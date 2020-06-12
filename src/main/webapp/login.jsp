@@ -119,7 +119,7 @@
                                         <div class="frm_controls">
                                             <input id="username" type="text" class="frm-controlM" name="username"
                                                    value="">
-                                            <span class="frm_desc">用来登录调问网，接收到激活邮件才能完成注册</span>
+                                            <span class="frm_desc">用来登录系统，接收到激活邮件才能完成注册</span>
                                         </div>
                                     </div>
                                     <div class="frmItem">

@@ -20,20 +20,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.key.common.base.service.AccountManager;
 
 public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
-	Log log=LogFactory.getLog(FormAuthenticationWithLockFilter.class);
+    Log log = LogFactory.getLog(FormAuthenticationWithLockFilter.class);
 
-    private long  maxLoginAttempts = 10;
+    private long maxLoginAttempts = 10;
 
-    public static ConcurrentHashMap<String, AtomicLong> accountLockMap   = new ConcurrentHashMap<String, AtomicLong>();
-    
+    public static ConcurrentHashMap<String, AtomicLong> accountLockMap = new ConcurrentHashMap<String, AtomicLong>();
+
     private String successAdminUrl;
-  
+
     private String successAdminRole;
-    
-    
+
+
     @Autowired
     protected AccountManager accountManager;
-    
+
     @Override
     public boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
         AuthenticationToken token = createToken(request, response);
@@ -55,7 +55,7 @@ public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
 
     public boolean checkIfAccountLocked(ServletRequest request) {
         String username = getUsername(request);
-        if (username!=null && accountLockMap.get((String) username) != null) {
+        if (username != null && accountLockMap.get((String) username) != null) {
             long remainLoginAttempts = accountLockMap.get((String) username).get();
             if (remainLoginAttempts <= 0) {
                 return true;
@@ -64,21 +64,23 @@ public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
         return false;
     }
 
-    
+
     private boolean doLogin(ServletRequest request, ServletResponse response, AuthenticationToken token)
             throws Exception {
         try {
             Subject subject = getSubject(request, response);
             subject.login(token);
-            
-    		User user = accountManager.findUserByLoginNameOrEmail(getUsername(request));
+
+            User user = accountManager.findUserByLoginNameOrEmail(getUsername(request));
 
             return onLoginSuccess(token, subject, request, response);
         } catch (IncorrectCredentialsException e) {
+            e.printStackTrace();
             decreaseAccountLoginAttempts(request);
             checkIfAccountLocked(request);
             return onLoginFailure(token, e, request, response);
         } catch (AuthenticationException e) {
+            e.printStackTrace();
             return onLoginFailure(token, e, request, response);
         }
     }
@@ -100,57 +102,62 @@ public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
     public void setMaxLoginAttempts(long maxLoginAttempts) {
         this.maxLoginAttempts = maxLoginAttempts;
     }
-    
+
     public void setSuccessAdminUrl(String successAdminUrl) {
-		this.successAdminUrl = successAdminUrl;
-	}
-    
+        this.successAdminUrl = successAdminUrl;
+    }
+
     public void setSuccessAdminRole(String successAdminRole) {
-		this.successAdminRole = successAdminRole;
-	}
-    
+        this.successAdminRole = successAdminRole;
+    }
+
     /* 得到某个账号还可以登录次数 */
-    public Long getAccountLocked(String username){
-   	 long remainLoginAttempts=0;
-        if (username!=null && accountLockMap.get((String) username) != null) {
+    public Long getAccountLocked(String username) {
+        long remainLoginAttempts = 0;
+        if (username != null && accountLockMap.get((String) username) != null) {
             remainLoginAttempts = accountLockMap.get((String) username).get();
         }
-        return remainLoginAttempts+1;
-   }
+        return remainLoginAttempts + 1;
+    }
+
     /* 重写登录失败，加入了失败时还可以重试的次数信息 */
     @Override
     protected boolean onLoginFailure(AuthenticationToken token,
-    		AuthenticationException e, ServletRequest request,
-    		ServletResponse response) {
-    	request.setAttribute("remainLoginAttempt", getAccountLocked(getUsername(request)));
-    	return super.onLoginFailure(token, e, request, response);
+                                     AuthenticationException e, ServletRequest request,
+                                     ServletResponse response) {
+        request.setAttribute("remainLoginAttempt", getAccountLocked(getUsername(request)));
+        return super.onLoginFailure(token, e, request, response);
     }
-    
-    
+
+
     @Override
     protected String getUsername(ServletRequest request) {
-    	// TODO Auto-generated method stub
-    	String username = super.getUsername(request);
-    	if(username==null){
-    		Object temp=request.getAttribute(getUsernameParam());
-    		username=temp!=null?temp.toString():null;
-    	}
-    	return username;
+        // TODO Auto-generated method stub
+        String username = super.getUsername(request);
+        if (username == null) {
+            Object temp = request.getAttribute(getUsernameParam());
+            username = temp != null ? temp.toString() : null;
+        }
+        System.out.println("username => " + username);
+        return username;
     }
+
     @Override
     protected String getPassword(ServletRequest request) {
-    	String password = super.getPassword(request);
-    	if(password==null){
-    		Object temp=request.getAttribute(getPasswordParam());
-    		password=temp!=null?temp.toString():null;
-    	}
-    	return password;
+        String password = super.getPassword(request);
+        if (password == null) {
+            Object temp = request.getAttribute(getPasswordParam());
+            password = temp != null ? temp.toString() : null;
+        }
+        System.out.println("password => " + password);
+
+        return password;
     }
-    
+
     @Override
     protected boolean isRememberMe(ServletRequest request) {
-//    	 TODO Auto-generated method stub
-    	return super.isRememberMe(request);
+        //    	 TODO Auto-generated method stub
+        return super.isRememberMe(request);
     }
 
 }

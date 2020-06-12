@@ -44,58 +44,54 @@ import com.key.common.utils.web.Struts2Utils;
 
 public class ShiroDbRealm extends AuthorizingRealm {
 
-	@Autowired
-	protected AccountManager accountManager;
+    @Autowired
+    protected AccountManager accountManager;
 
-	public ShiroDbRealm() {
-		setCredentialsMatcher(new HashedCredentialsMatcher("SHA-1"));
-	}
+    public ShiroDbRealm() {
+        setCredentialsMatcher(new HashedCredentialsMatcher("SHA-1"));
+    }
 
-	/**
-	 * 认证回调函数,登录时调用.
-	 */
-	@Override
-	protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authcToken) throws AuthenticationException {
-		UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
-//		User user = accountManager.findUserByLoginName(token.getUsername());
-		
-		//根据loginToken 看能不查到当前token token有效期就1分钟
-		
-		String tokenPassword=new String(token.getPassword());
+    /**
+     * 认证回调函数,登录时调用.
+     */
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authcToken) throws AuthenticationException {
+        UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
 
-		User user = accountManager.findUserByLoginNameOrEmail(token.getUsername());
+        String tokenPassword = new String(token.getPassword());
 
-		//user.getStandardLock()==1 
-		if (user != null &&  user.getStatus().intValue()!=0 && !user.getLoginName().endsWith("@chacuo.net")) {
-			 return new SimpleAuthenticationInfo(user.getLoginName(), user.getShaPassword() , getName());
-		} else {
-			return null;
-		}
-	}
+        User user = accountManager.findUserByLoginNameOrEmail(token.getUsername());
 
-	/**
-	 * 授权查询回调函数, 进行鉴权但缓存中无用户的授权信息时调用.
-	 */
-	@Override
-	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-		String username = (String) principals.fromRealm(getName()).iterator().next();
-//		User user = accountManager.findUserByLoginName(username);
-		User user = accountManager.findUserByLoginNameOrEmail(username);
-		if (user != null && "1".equals(user.getId())) {
-			SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
-			info.addRole("admin");
-			return info;
-		} else {
-			return null;
-		}
-	}
+        if (user != null && user.getStatus().intValue() != 0 && !user.getLoginName().endsWith("@chacuo.net")) {
+            return new SimpleAuthenticationInfo(user.getLoginName(), user.getShaPassword(), getName());
+        } else {
+            return null;
+        }
+    }
 
-	/**
-	 * 更新用户授权信息缓存.
-	 */
-	public void clearCachedAuthorizationInfo(String principal) {
-		SimplePrincipalCollection principals = new SimplePrincipalCollection(principal, getName());
-		clearCachedAuthorizationInfo(principals);
-	}
-	
+    /**
+     * 授权查询回调函数, 进行鉴权但缓存中无用户的授权信息时调用.
+     */
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+        String username = (String) principals.fromRealm(getName()).iterator().next();
+        //		User user = accountManager.findUserByLoginName(username);
+        User user = accountManager.findUserByLoginNameOrEmail(username);
+        if (user != null && "1".equals(user.getId())) {
+            SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
+            info.addRole("admin");
+            return info;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * 更新用户授权信息缓存.
+     */
+    public void clearCachedAuthorizationInfo(String principal) {
+        SimplePrincipalCollection principals = new SimplePrincipalCollection(principal, getName());
+        clearCachedAuthorizationInfo(principals);
+    }
+
 }

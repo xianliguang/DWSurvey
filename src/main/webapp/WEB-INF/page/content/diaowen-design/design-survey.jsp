@@ -28,7 +28,6 @@
 </script>
 </head>
 <body>
-<%--<div><span>找不到人填问卷？加QQ群：457647860 互填互助完成调研作业</span></div>--%>
 <div id="wrap">
 <input type="hidden" id="id" name="id" value="${survey.id }">
 <input type="hidden" id="ctx" value="${ctx }">
